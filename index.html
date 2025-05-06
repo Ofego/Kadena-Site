@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My HTML/CSS Project</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="nav-content">
+            <img src="images/logo.png" alt="Logo" class="nav-logo" />
+            <div class="mobile-menu-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <ul class="nav-links">
+                <li><a href="#">Home</a></li>
+                <li><a href="#">Capability</a></li>
+                <li><a href="#">Our Team</a></li>
+                <li><a href="#">FAQ's</a></li>
+                <li><a href="#">Community</a></li>
+                <li><a href="#">Check Address</a></li>
+            </ul>
+            <button class="nav-action-btn" id="connectWalletBtn">Connect</button>
+            <div id="walletDropdown" class="wallet-dropdown">
+              <button id="disconnectWalletBtn">Disconnect</button>
+            </div>
+        </div>
+    </nav>
+    <header>
+        <h1 class="hero-statement">Built for Performance.
+            <br>
+            Designed for Rewards.
+        </h1>
+        <p class="hero-substatement">Experience a dynamic Kadena protocol where we manage the mining, and you reap the benefits.</p>
+        <div class="cta-buttons">
+            <a href="#" class="cta-button primary-cta">
+                Start Earning KDA
+                <img src="images/vector.png" alt="arrow" class="cta-arrow-img" />
+            </a>
+            <a href="#" class="cta-button secondary-cta">
+                Learn More
+            </a>
+        </div>
+    </header>
+    <main>
+        <section>
+            <section class="image-gallery">
+                <img src="images/box-1.png" alt="Box 1" class="box box-1">
+                <img src="images/box-2.png" alt="Box 2" class="box box-2">
+                <img src="images/box-3.png" alt="Box 3" class="box box-3">
+                <img src="images/box-4.png" alt="Box 4" class="box box-4">
+                <img src="images/box-5.png" alt="Box 5" class="box box-5">
+            </section>
+        </section>
+    </main>
+    <div id="walletModal" class="wallet-modal">
+      <div class="wallet-modal-content">
+        <span class="wallet-modal-close" id="walletModalClose">&times;</span>
+        <h2>Connect Wallet</h2>
+        <button class="wallet-option" id="connectMetaMask">Connect with MetaMask</button>
+        <button class="wallet-option" id="connectPhantom">Connect with Phantom</button>
+      </div>
+    </div>
+    <script>
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const navLinks = document.querySelector('.nav-links');
+
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenuBtn.classList.toggle('active');
+            navLinks.classList.toggle('active');
+        });
+
+        // Wallet modal logic
+        const walletModal = document.getElementById('walletModal');
+        const walletModalClose = document.getElementById('walletModalClose');
+        const ctaConnectBtn = document.getElementById('connectWalletBtn');
+        const walletDropdown = document.getElementById('walletDropdown');
+        const disconnectWalletBtn = document.getElementById('disconnectWalletBtn');
+
+        // On page load, check if MetaMask or Phantom is already connected
+        window.addEventListener('DOMContentLoaded', async () => {
+            // MetaMask
+            if (window.ethereum && window.ethereum.selectedAddress) {
+                ctaConnectBtn.textContent = window.ethereum.selectedAddress.slice(0, 6) + '...' + window.ethereum.selectedAddress.slice(-4);
+                ctaConnectBtn.classList.add('connected');
+                ctaConnectBtn.disabled = false;
+            } else if (window.solana && window.solana.isPhantom && window.solana.isConnected && window.solana.publicKey) {
+                ctaConnectBtn.textContent = window.solana.publicKey.toString().slice(0, 6) + '...' + window.solana.publicKey.toString().slice(-4);
+                ctaConnectBtn.classList.add('connected');
+                ctaConnectBtn.disabled = false;
+            } else {
+                ctaConnectBtn.textContent = 'Connect';
+                ctaConnectBtn.classList.remove('connected');
+                ctaConnectBtn.disabled = false;
+            }
+        });
+
+        // Show modal if not connected, show dropdown if connected
+        ctaConnectBtn.addEventListener('click', function(e) {
+            if (ctaConnectBtn.classList.contains('connected')) {
+                e.preventDefault();
+                walletDropdown.style.display = walletDropdown.style.display === 'block' ? 'none' : 'block';
+            } else {
+                e.preventDefault();
+                walletModal.style.display = 'flex';
+            }
+        });
+
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!ctaConnectBtn.contains(e.target) && !walletDropdown.contains(e.target)) {
+                walletDropdown.style.display = 'none';
+            }
+        });
+
+        walletModalClose.onclick = function() {
+            walletModal.style.display = 'none';
+        };
+        window.onclick = function(event) {
+            if (event.target === walletModal) {
+                walletModal.style.display = 'none';
+            }
+        };
+
+        // Disconnect logic
+        disconnectWalletBtn.onclick = function() {
+            ctaConnectBtn.textContent = 'Connect';
+            ctaConnectBtn.classList.remove('connected');
+            ctaConnectBtn.disabled = false;
+            walletDropdown.style.display = 'none';
+        };
+
+        // MetaMask connect
+        document.getElementById('connectMetaMask').onclick = async function() {
+            if (window.ethereum) {
+                try {
+                    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+                    ctaConnectBtn.textContent = accounts[0].slice(0, 6) + '...' + accounts[0].slice(-4);
+                    ctaConnectBtn.classList.add('connected');
+                    ctaConnectBtn.disabled = false;
+                    walletModal.style.display = 'none';
+                } catch (err) {
+                    alert('MetaMask connection rejected.');
+                }
+            } else {
+                alert('MetaMask is not installed.');
+            }
+        };
+
+        // Phantom connect
+        document.getElementById('connectPhantom').onclick = async function() {
+            if (window.solana && window.solana.isPhantom) {
+                try {
+                    const resp = await window.solana.connect();
+                    ctaConnectBtn.textContent = resp.publicKey.toString().slice(0, 6) + '...' + resp.publicKey.toString().slice(-4);
+                    ctaConnectBtn.classList.add('connected');
+                    ctaConnectBtn.disabled = false;
+                    walletModal.style.display = 'none';
+                } catch (err) {
+                    alert('Phantom connection rejected.');
+                }
+            } else {
+                alert('Phantom wallet is not installed.');
+            }
+        };
+    </script>
+</body>
+</html> 
